@@ -6,7 +6,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import java.time.Instant;
-import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.beans.BeanUtils;
 
 @Entity
@@ -16,9 +15,6 @@ public class TransactionEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
 	private Integer accountId;
-	@CreationTimestamp
-	private Instant created;
-
 	private Instant time;
 	private Integer parentId;
 	private Integer amount;
@@ -30,7 +26,14 @@ public class TransactionEntity {
 
 	public TransactionEntity(TransactionRequest transactionRequest) {
 		BeanUtils.copyProperties(transactionRequest, this);
-		this.parentId = transactionRequest.transactionId();
+		this.parentId = transactionRequest.getTransactionId();
+	}
+
+	public Integer getTransactionId() {
+		if (parentId != null) {
+			return parentId;
+		}
+		return id;
 	}
 
 	public Integer getAccountId() {
@@ -41,26 +44,12 @@ public class TransactionEntity {
 		this.accountId = accountId;
 	}
 
-	public Integer getTransactionId() {
-		if (parentId != null) {
-			return parentId;
-		}
-		return id;
+	public Instant getTime() {
+		return time;
 	}
 
-	public Instant getTransactionTime() {
-		if (time != null) {
-			return time;
-		}
-		return created;
-	}
-
-	public void setParentId(Integer transactionId) {
-		this.parentId = transactionId;
-	}
-
-	public void setCreated(Instant created) {
-		this.created = created;
+	public void setTime(Instant time) {
+		this.time = time;
 	}
 
 	public Integer getAmount() {
@@ -85,9 +74,5 @@ public class TransactionEntity {
 
 	public void setCategory(String category) {
 		this.category = category;
-	}
-
-	public void setTime(Instant time) {
-		this.time = time;
 	}
 }

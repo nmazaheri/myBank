@@ -6,10 +6,8 @@ CREATE TABLE transaction_entity
     amount      INTEGER,
     description VARCHAR(500),
     category    VARCHAR(50),
-    time        TIMESTAMP,
-    created     TIMESTAMP
+    time        TIMESTAMP
 );
 
-create index on transaction_entity (account_id, parent_id);
 create index on transaction_entity (account_id, id);
--- create sequence if not exists transaction_entity_seq;
+create index on transaction_entity (account_id, time);
