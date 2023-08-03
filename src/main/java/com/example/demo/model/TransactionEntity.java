@@ -3,6 +3,7 @@ package com.example.demo.model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import java.time.Instant;
 import org.hibernate.annotations.CreationTimestamp;
@@ -12,13 +13,14 @@ import org.springframework.beans.BeanUtils;
 public class TransactionEntity {
 
 	@Id
-	@GeneratedValue
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
-	private Integer parentId;
+	private Integer accountId;
 	@CreationTimestamp
 	private Instant created;
 
-	private Integer accountId;
+	private Instant time;
+	private Integer parentId;
 	private Integer amount;
 	private String description;
 	private String category;
@@ -29,7 +31,6 @@ public class TransactionEntity {
 	public TransactionEntity(TransactionRequest transactionRequest) {
 		BeanUtils.copyProperties(transactionRequest, this);
 		this.parentId = transactionRequest.transactionId();
-		this.created = transactionRequest.time();
 	}
 
 	public Integer getAccountId() {
@@ -47,12 +48,15 @@ public class TransactionEntity {
 		return id;
 	}
 
-	public void setParentId(Integer transactionId) {
-		this.parentId = transactionId;
+	public Instant getTransactionTime() {
+		if (time != null) {
+			return time;
+		}
+		return created;
 	}
 
-	public Instant getCreated() {
-		return created;
+	public void setParentId(Integer transactionId) {
+		this.parentId = transactionId;
 	}
 
 	public void setCreated(Instant created) {
@@ -81,5 +85,9 @@ public class TransactionEntity {
 
 	public void setCategory(String category) {
 		this.category = category;
+	}
+
+	public void setTime(Instant time) {
+		this.time = time;
 	}
 }
