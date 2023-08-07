@@ -53,7 +53,7 @@ public class BankControllerTest {
 
 	protected ResultActions submitBalance(TransactionRequest transactionRequest) throws Exception {
 		return mockMvc.perform(get("/api/balance").param("accountId", String.valueOf(transactionRequest.getAccountId()))
-				.param("time", transactionRequest.getTime().toString()));
+				.param("time", transactionRequest.getTime().toString())).andDo(print());
 	}
 
 	public BalanceResponse validateBalanceResponse(ResultActions resultActions, int balance) throws Exception {

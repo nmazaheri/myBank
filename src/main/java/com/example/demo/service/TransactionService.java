@@ -1,6 +1,6 @@
 package com.example.demo.service;
 
-import com.example.demo.model.TransactionEntity;
+import com.example.demo.model.BankTransaction;
 import com.example.demo.model.TransactionRequest;
 import com.example.demo.repository.TransactionRepository;
 import java.time.Instant;
@@ -8,6 +8,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -16,7 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 @Component
 public class TransactionService {
 
-	private static final Comparator<TransactionEntity> transactionTimeComparator = Comparator.comparing(TransactionEntity::getTime);
+	private static final Comparator<BankTransaction> transactionTimeComparator = Comparator.comparing(BankTransaction::getTime);
 
 	private TransactionRepository transactionRepository;
 
@@ -24,9 +25,9 @@ public class TransactionService {
 		this.transactionRepository = transactionRepository;
 	}
 
-	public TransactionEntity save(TransactionRequest transactionRequest) {
+	public BankTransaction save(TransactionRequest transactionRequest) {
 		verifyParentExists(transactionRequest);
-		TransactionEntity entity = new TransactionEntity(transactionRequest);
+		BankTransaction entity = new BankTransaction(transactionRequest);
 		return transactionRepository.save(entity);
 	}
 
@@ -35,25 +36,32 @@ public class TransactionService {
 		if (previousTransactionId == null) {
 			return;
 		}
-		Optional<TransactionEntity> parentTransaction = transactionRepository.findByAccountIdAndId(transactionRequest.getAccountId(),
+		Optional<BankTransaction> parentTransaction = transactionRepository.findByAccountIdAndId(transactionRequest.getAccountId(),
 				previousTransactionId);
 		if (parentTransaction.isEmpty()) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Transaction ID=" + previousTransactionId + " does not exist");
 		}
 	}
 
-	public Integer getBalance(Integer accountId, Instant instant) {
-		List<TransactionEntity> transactions = transactionRepository.findByAccountIdAndTimeLessThanEqual(accountId, instant);
-		Map<Integer, List<TransactionEntity>> map = transactions.stream().collect(Collectors.groupingBy(TransactionEntity::getTransactionId));
-//		int sum = map.values().stream().map(e -> e.stream().max(transactionTimeComparator)).filter(Optional::isPresent).map(Optional::get).map(TransactionEntity::getAmount).mapToInt(Integer::intValue).sum()
+	public Integer getBalance(Integer accountId, Instant maxTime) {
+		List<BankTransaction> unique = getBankTransactions(accountId);
+		List<BankTransaction> filtered = unique.stream().filter(lessThenOrEqual(maxTime)).toList();
+		return filtered.stream().map(BankTransaction::getAmount).mapToInt(Integer::intValue).sum();
+	}
 
-		List<TransactionEntity> unique = map.values()
+	private static Predicate<BankTransaction> lessThenOrEqual(Instant maxTime) {
+		return i -> !i.getTime().isAfter(maxTime);
+	}
+
+	private List<BankTransaction> getBankTransactions(Integer accountId) {
+		List<BankTransaction> transactions = transactionRepository.findByAccountId(accountId);
+		Map<Integer, List<BankTransaction>> transacationMap = transactions.stream().collect(Collectors.groupingBy(BankTransaction::getTransactionId));
+		return transacationMap.values()
 				.stream()
 				.map(e -> e.stream().max(transactionTimeComparator))
 				.filter(Optional::isPresent)
 				.map(Optional::get)
 				.toList();
-		return unique.stream().map(TransactionEntity::getAmount).mapToInt(Integer::intValue).sum();
 	}
 
 }

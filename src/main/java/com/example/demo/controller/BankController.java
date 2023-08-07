@@ -1,7 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.model.BalanceResponse;
-import com.example.demo.model.TransactionEntity;
+import com.example.demo.model.BankTransaction;
 import com.example.demo.model.TransactionRequest;
 import com.example.demo.model.TransactionResponse;
 import com.example.demo.service.TransactionService;
@@ -34,9 +34,9 @@ public class BankController {
 	 */
 	@PostMapping(value = "add", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public TransactionResponse add(@Valid @RequestBody TransactionRequest transactionRequest) {
-		TransactionEntity transactionEntity = transactionService.save(transactionRequest);
+		BankTransaction bankTransaction = transactionService.save(transactionRequest);
 		Integer amount = transactionService.getBalance(transactionRequest.getAccountId(), Instant.now());
-		return TransactionResponse.of(amount, transactionEntity);
+		return TransactionResponse.of(amount, bankTransaction);
 	}
 
 	/**

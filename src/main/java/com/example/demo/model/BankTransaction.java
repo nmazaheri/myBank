@@ -9,7 +9,7 @@ import java.time.Instant;
 import org.springframework.beans.BeanUtils;
 
 @Entity
-public class TransactionEntity {
+public class BankTransaction {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,10 +21,10 @@ public class TransactionEntity {
 	private String description;
 	private String category;
 
-	public TransactionEntity() {
+	public BankTransaction() {
 	}
 
-	public TransactionEntity(TransactionRequest transactionRequest) {
+	public BankTransaction(TransactionRequest transactionRequest) {
 		BeanUtils.copyProperties(transactionRequest, this);
 		this.parentId = transactionRequest.getTransactionId();
 	}

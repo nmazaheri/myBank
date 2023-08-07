@@ -1,4 +1,4 @@
-CREATE TABLE transaction_entity
+CREATE TABLE bank_transaction
 (
     id          SERIAL PRIMARY KEY,
     account_id  INTEGER,
@@ -9,5 +9,5 @@ CREATE TABLE transaction_entity
     time        TIMESTAMP
 );
 
-create index on transaction_entity (account_id, id);
-create index on transaction_entity (account_id, time);
+create index on bank_transaction (account_id, id);
+create index on bank_transaction (account_id, parent_id);

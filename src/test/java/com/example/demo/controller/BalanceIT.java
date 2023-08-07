@@ -25,12 +25,34 @@ class BalanceIT extends BankControllerTest {
 	}
 
 	@Test
-	public void defaultTimeTest() throws Exception {
-		TransactionRequest transactionRequest = new TransactionRequestBuilder().setAccountId(1).setAmount(100).build();
+	public void updateTransactionTest() throws Exception {
+		TransactionRequest transactionRequest = new TransactionRequestBuilder().setAccountId(1).setTime(Instant.now().minusSeconds(10)).setAmount(100).build();
+		ResultActions resultActions = submitAmount(transactionRequest);
+		TransactionResponse response = validateTransactionResponse(resultActions, transactionRequest.getAmount());
+		Integer parentTransactionId = response.transactionId();
+		resultActions = mockMvc.perform(get("/api/balance").param("accountId", String.valueOf(transactionRequest.getAccountId())));
+		validateBalanceResponse(resultActions, transactionRequest.getAmount());
+
+		transactionRequest = new TransactionRequestBuilder().setAccountId(1).setAmount(200).setTransactionId(parentTransactionId).build();
 		submitAmount(transactionRequest);
-		ResultActions resultActions = mockMvc.perform(get("/api/balance").param("accountId", String.valueOf(transactionRequest.getAccountId())));
+		resultActions = mockMvc.perform(get("/api/balance").param("accountId", String.valueOf(transactionRequest.getAccountId())));
 		validateBalanceResponse(resultActions, transactionRequest.getAmount());
 	}
+
+//	@Test
+//	public void previousBalanceTest() throws Exception {
+//		TransactionRequest transactionRequest = new TransactionRequestBuilder().setAccountId(1).setTime(Instant.now().minus(3, ChronoUnit.DAYS)).setAmount(100).build();
+//		ResultActions resultActions = submitAmount(transactionRequest);
+//		TransactionResponse response = validateTransactionResponse(resultActions, transactionRequest.getAmount());
+//		Integer parentTransactionId = response.transactionId();
+//		resultActions = mockMvc.perform(get("/api/balance").param("accountId", String.valueOf(transactionRequest.getAccountId())));
+//		validateBalanceResponse(resultActions, transactionRequest.getAmount());
+//
+//		transactionRequest = new TransactionRequestBuilder().setAccountId(1).setAmount(200).setTransactionId(parentTransactionId).build();
+//		submitAmount(transactionRequest);
+//		resultActions = mockMvc.perform(get("/api/balance").param("accountId", String.valueOf(transactionRequest.getAccountId())));
+//		validateBalanceResponse(resultActions, transactionRequest.getAmount());
+//	}
 
 	@Test
 	public void accumulatingBalanceTest() throws Exception {
@@ -65,7 +87,7 @@ class BalanceIT extends BankControllerTest {
 		int days = 6;
 
 		List<TransactionRequest> transactionRequests = new LinkedList<>();
-		Instant instant = Instant.now().minus(7, ChronoUnit.DAYS);
+		Instant instant = Instant.now().minus(days + 1, ChronoUnit.DAYS);
 		int amount = 100;
 		TransactionRequest initialTransactionRequest = new TransactionRequestBuilder().setAccountId(1).setAmount(amount).setTime(instant).build();
 		ResultActions resultActions = submitAmount(initialTransactionRequest);
@@ -91,7 +113,8 @@ class BalanceIT extends BankControllerTest {
 
 		for (TransactionRequest transactionRequest : sortedTransactionRequests) {
 			resultActions = submitBalance(transactionRequest);
-			validateBalanceResponse(resultActions, transactionRequest.getAmount());
+			int expected = instant.isAfter(transactionRequest.getTime()) ? 0 : transactionRequest.getAmount();
+			validateBalanceResponse(resultActions, expected);
 		}
 
 	}
