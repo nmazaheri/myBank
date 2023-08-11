@@ -2,12 +2,18 @@ package com.example.demo.controller;
 
 import com.example.demo.model.BalanceResponse;
 import com.example.demo.model.BankTransaction;
+import com.example.demo.model.ShowTransactionsResponse;
+import com.example.demo.model.SortOrder;
+import com.example.demo.model.TransactionField;
 import com.example.demo.model.TransactionRequest;
 import com.example.demo.model.TransactionResponse;
 import com.example.demo.service.TransactionService;
 import com.example.demo.util.BankUtils;
+import com.example.demo.util.SortUtils;
 import jakarta.validation.Valid;
 import java.time.Instant;
+import java.util.Comparator;
+import java.util.List;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -46,13 +52,26 @@ public class BankController {
 	 * @param time      the time which defaults to the current time
 	 * @return the balance and the time in which it was acquired
 	 */
-	@GetMapping(value = "balance")
+	@GetMapping("balance")
 	public BalanceResponse balance(@RequestParam Integer accountId, @RequestParam(required = false) Instant time) {
 		if (time == null) {
 			time = BankUtils.getCurrentTime();
 		}
 		Integer amount = transactionService.getBalance(accountId, time);
 		return BalanceResponse.of(amount, time);
+	}
+
+	@GetMapping("show")
+	public ShowTransactionsResponse showTransactions(@RequestParam Integer accountId, @RequestParam(required = false) Instant time,
+			@RequestParam(defaultValue = "id,desc") List<String> sort, @RequestParam(required = false) List<String> filter) {
+		if (time == null) {
+			time = BankUtils.getCurrentTime();
+		}
+		Comparator<BankTransaction> comparator = SortUtils.getComparator(sort);
+		List<BankTransaction> filteredBankTransactions = transactionService.getFilteredBankTransactions(accountId, time);
+		int amount = filteredBankTransactions.stream().map(BankTransaction::getAmount).mapToInt(Integer::intValue).sum();
+		List<BankTransaction> sortedTransactions = filteredBankTransactions.stream().sorted(comparator).toList();
+		return ShowTransactionsResponse.of(amount, time, sortedTransactions);
 	}
 
 }

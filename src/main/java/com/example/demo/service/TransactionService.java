@@ -44,9 +44,13 @@ public class TransactionService {
 	}
 
 	public Integer getBalance(Integer accountId, Instant maxTime) {
-		List<BankTransaction> unique = getBankTransactions(accountId);
-		List<BankTransaction> filtered = unique.stream().filter(lessThenOrEqual(maxTime)).toList();
+		List<BankTransaction> filtered = getFilteredBankTransactions(accountId, maxTime);
 		return filtered.stream().map(BankTransaction::getAmount).mapToInt(Integer::intValue).sum();
+	}
+
+	public List<BankTransaction> getFilteredBankTransactions(Integer accountId, Instant maxTime) {
+		List<BankTransaction> unique = getBankTransactions(accountId);
+		return unique.stream().filter(lessThenOrEqual(maxTime)).toList();
 	}
 
 	private static Predicate<BankTransaction> lessThenOrEqual(Instant maxTime) {
