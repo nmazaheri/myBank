@@ -3,6 +3,7 @@ package com.example.demo.controller;
 import com.example.demo.model.BalanceResponse;
 import com.example.demo.model.BankTransaction;
 import com.example.demo.model.ShowTransactionsResponse;
+import com.example.demo.model.TransactionRecord;
 import com.example.demo.model.TransactionRequest;
 import com.example.demo.model.TransactionResponse;
 import com.example.demo.service.TransactionService;
@@ -38,10 +39,10 @@ public class BankController {
 	}
 
 	/**
-	 * Add or updates transactions based on if the {@link TransactionRequest#getTransactionId()} is set.
+	 * Add or updates transactions based on if the {@link TransactionRequest#getId()} is set.
 	 *
 	 * @param transactionRequest contains details for creating a new transaction
-	 * @return the new transactionId and the balance at the current time
+	 * @return the new id and the balance at the current time
 	 */
 	@PostMapping(value = "add", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public TransactionResponse add(@Valid @RequestBody TransactionRequest transactionRequest) {
@@ -67,28 +68,22 @@ public class BankController {
 	}
 
 	@GetMapping("show")
-	public ShowTransactionsResponse showTransactions(@RequestParam Integer accountId, @RequestParam(required = false) Instant time,
-			@RequestParam(defaultValue = "id,desc") List<String> sort, @RequestParam(required = false) String search) {
-		if (time == null) {
-			time = BankUtils.getCurrentTime();
-		}
-		Predicate<BankTransaction> predicate = getFilter(search);
-		Comparator<BankTransaction> comparator = SortUtils.getComparator(sort);
+	public ShowTransactionsResponse showTransactions(@RequestParam Integer accountId, @RequestParam(defaultValue = "id,desc") List<String> sort,
+			@RequestParam(required = false) String search) {
+		Predicate<TransactionRecord> predicate = getFilter(search);
+		Comparator<TransactionRecord> comparator = SortUtils.getComparator(sort);
 
-		List<BankTransaction> filteredBankTransactions = transactionService.getFilteredBankTransactions(accountId, time)
-				.stream()
-				.filter(predicate)
-				.toList();
-		int amount = filteredBankTransactions.stream().map(BankTransaction::getAmount).mapToInt(Integer::intValue).sum();
-		List<BankTransaction> sortedTransactions = filteredBankTransactions.stream().sorted(comparator).toList();
-		return ShowTransactionsResponse.of(amount, time, sortedTransactions);
+		List<TransactionRecord> transactions = transactionService.getTransactionRecords(accountId, predicate);
+		int amount = transactions.stream().map(TransactionRecord::amount).mapToInt(Integer::intValue).sum();
+		List<TransactionRecord> sortedTransactions = transactions.stream().sorted(comparator).toList();
+		return ShowTransactionsResponse.of(amount, sortedTransactions);
 	}
 
-	private Predicate<BankTransaction> getFilter(String search) {
+	private Predicate<TransactionRecord> getFilter(String search) {
 		if (search == null) {
 			return x -> true;
 		}
-		Condition<GeneralQueryBuilder> condition = pipeline.apply(search, BankTransaction.class);
+		Condition<GeneralQueryBuilder> condition = pipeline.apply(search, TransactionRecord.class);
 		return condition.query(new PredicateVisitor<>());
 	}
 

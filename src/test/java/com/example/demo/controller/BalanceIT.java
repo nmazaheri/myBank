@@ -29,7 +29,7 @@ class BalanceIT extends BankControllerTest {
 		TransactionRequest transactionRequest = new TransactionRequestBuilder().setAccountId(1).setTime(Instant.now().minusSeconds(10)).setAmount(100).build();
 		ResultActions resultActions = submitAmount(transactionRequest);
 		TransactionResponse response = validateTransactionResponse(resultActions, transactionRequest.getAmount());
-		Integer parentTransactionId = response.transactionId();
+		Integer parentTransactionId = response.id();
 		resultActions = mockMvc.perform(get("/api/balance").param("accountId", String.valueOf(transactionRequest.getAccountId())));
 		validateBalanceResponse(resultActions, transactionRequest.getAmount());
 
@@ -44,7 +44,7 @@ class BalanceIT extends BankControllerTest {
 //		TransactionRequest transactionRequest = new TransactionRequestBuilder().setAccountId(1).setTime(Instant.now().minus(3, ChronoUnit.DAYS)).setAmount(100).build();
 //		ResultActions resultActions = submitAmount(transactionRequest);
 //		TransactionResponse response = validateTransactionResponse(resultActions, transactionRequest.getAmount());
-//		Integer parentTransactionId = response.transactionId();
+//		Integer parentTransactionId = response.id();
 //		resultActions = mockMvc.perform(get("/api/balance").param("accountId", String.valueOf(transactionRequest.getAccountId())));
 //		validateBalanceResponse(resultActions, transactionRequest.getAmount());
 //
@@ -92,7 +92,7 @@ class BalanceIT extends BankControllerTest {
 		TransactionRequest initialTransactionRequest = new TransactionRequestBuilder().setAccountId(1).setAmount(amount).setTime(instant).build();
 		ResultActions resultActions = submitAmount(initialTransactionRequest);
 		TransactionResponse transactionResponse = validateTransactionResponse(resultActions, amount);
-		Integer parentId = transactionResponse.transactionId();
+		Integer parentId = transactionResponse.id();
 
 		for (int i = 0; i < days; i++) {
 			instant = instant.plus(1, ChronoUnit.DAYS);

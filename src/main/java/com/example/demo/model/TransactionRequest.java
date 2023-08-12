@@ -9,15 +9,15 @@ public class TransactionRequest {
 	private @NotNull Integer accountId;
 	private @NotNull Integer amount;
 	private @NotNull Instant time;
-	private Integer transactionId;
+	private Integer id;
 	private String description;
 	private String category;
 
-	public TransactionRequest(Integer accountId, Integer amount, Instant time, Integer transactionId, String description,
+	public TransactionRequest(Integer accountId, Integer amount, Instant time, Integer id, String description,
 			String category) {
 		this.accountId = accountId;
 		this.amount = amount;
-		this.transactionId = transactionId;
+		this.id = id;
 		this.description = description;
 		this.category = category;
 		setTime(time);
@@ -51,12 +51,12 @@ public class TransactionRequest {
 		return time;
 	}
 
-	public Integer getTransactionId() {
-		return transactionId;
+	public Integer getId() {
+		return id;
 	}
 
-	public void setTransactionId(Integer transactionId) {
-		this.transactionId = transactionId;
+	public void setId(Integer id) {
+		this.id = id;
 	}
 
 	public String getDescription() {

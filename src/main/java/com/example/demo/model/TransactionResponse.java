@@ -2,7 +2,7 @@ package com.example.demo.model;
 
 import java.math.BigDecimal;
 
-public record TransactionResponse(String balance, Integer transactionId) {
+public record TransactionResponse(String balance, Integer id) {
 
 	public static TransactionResponse of(Integer amount, BankTransaction bankTransaction) {
 		return TransactionResponse.of(amount, bankTransaction.getTransactionId());

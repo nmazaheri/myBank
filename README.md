@@ -10,7 +10,7 @@ Each transaction has a few fields which define it
 - **category** - a category for the transaction
 
 ## API endpoints
-- **POST** /api/add to submit new transactions or update previous ones, returns transactionId which is required for the updating
+- **POST** /api/add to submit new transactions or update previous ones, returns id which is required for the updating
 - **GET** /api/balance to see your balance
 - **GET** /api/show to view the list of transactions
 
@@ -40,7 +40,7 @@ Content-Type: application/json
 {
   "accountId": 1,
   "amount": "-2500",
-  "transactionId": 1,
+  "id": 1,
   "category": "bills",
   "description": "electricity"
   "time": "2023-08-01T14:14:23Z"
@@ -70,8 +70,8 @@ GET http://localhost:8080/api/show?accountId=1&sort=description,asc&sort=categor
 ```
 with filtering using search:
 ```
-GET http://localhost:8080/api/show?accountId=1&search=description==electricity;category==bills
 GET http://localhost:8080/api/show?accountId=1&search=amount<0
+GET http://localhost:8080/api/show?accountId=1&search=time>2023-08-02
+GET http://localhost:8080/api/show?accountId=1&search=description==electricity;category==bills
 ```
-
 For more information on filtering you can refer [here](https://github.com/jirutka/rsql-parser#grammar-and-semantic)

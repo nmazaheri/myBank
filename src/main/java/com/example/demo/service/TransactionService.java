@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import com.example.demo.model.BankTransaction;
+import com.example.demo.model.TransactionRecord;
 import com.example.demo.model.TransactionRequest;
 import com.example.demo.repository.TransactionRepository;
 import java.time.Instant;
@@ -32,7 +33,7 @@ public class TransactionService {
 	}
 
 	private void verifyParentExists(TransactionRequest transactionRequest) {
-		Integer previousTransactionId = transactionRequest.getTransactionId();
+		Integer previousTransactionId = transactionRequest.getId();
 		if (previousTransactionId == null) {
 			return;
 		}
@@ -48,13 +49,17 @@ public class TransactionService {
 		return filtered.stream().map(BankTransaction::getAmount).mapToInt(Integer::intValue).sum();
 	}
 
-	public List<BankTransaction> getFilteredBankTransactions(Integer accountId, Instant maxTime) {
+	private List<BankTransaction> getFilteredBankTransactions(Integer accountId, Instant maxTime) {
 		List<BankTransaction> unique = getBankTransactions(accountId);
 		return unique.stream().filter(lessThenOrEqual(maxTime)).toList();
 	}
 
 	private static Predicate<BankTransaction> lessThenOrEqual(Instant maxTime) {
 		return i -> !i.getTime().isAfter(maxTime);
+	}
+
+	public List<TransactionRecord> getTransactionRecords(Integer accountId, Predicate<TransactionRecord> predicate) {
+		return getBankTransactions(accountId).stream().map(TransactionRecord::of).filter(predicate).toList();
 	}
 
 	private List<BankTransaction> getBankTransactions(Integer accountId) {

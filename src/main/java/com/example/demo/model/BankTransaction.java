@@ -26,7 +26,7 @@ public class BankTransaction {
 
 	public BankTransaction(TransactionRequest transactionRequest) {
 		BeanUtils.copyProperties(transactionRequest, this);
-		this.parentId = transactionRequest.getTransactionId();
+		this.parentId = transactionRequest.getId();
 	}
 
 	public Integer getTransactionId() {

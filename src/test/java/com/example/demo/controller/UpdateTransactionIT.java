@@ -38,7 +38,7 @@ class UpdateTransactionIT extends BankControllerTest {
 		TransactionRequest transactionRequest = new TransactionRequestBuilder().setAccountId(1).setAmount(100).build();
 		ResultActions resultActions = submitAmount(transactionRequest);
 		TransactionResponse response = validateTransactionResponse(resultActions, transactionRequest.getAmount());
-		transactionRequest = new TransactionRequestBuilder().setAccountId(1).setAmount(200).setTransactionId(response.transactionId()).build();
+		transactionRequest = new TransactionRequestBuilder().setAccountId(1).setAmount(200).setTransactionId(response.id()).build();
 		resultActions = submitAmount(transactionRequest);
 		validateTransactionResponse(resultActions, 200);
 	}
@@ -48,7 +48,7 @@ class UpdateTransactionIT extends BankControllerTest {
 		TransactionRequest transactionRequest = new TransactionRequestBuilder().setAccountId(1).setAmount(100).build();
 		ResultActions resultActions = submitAmount(transactionRequest);
 		TransactionResponse response = validateTransactionResponse(resultActions, 100);
-		Integer parentTransactionId = response.transactionId();
+		Integer parentTransactionId = response.id();
 
 		transactionRequest = new TransactionRequestBuilder().setAccountId(1).setAmount(200).setTransactionId(parentTransactionId).build();
 		resultActions = submitAmount(transactionRequest);
