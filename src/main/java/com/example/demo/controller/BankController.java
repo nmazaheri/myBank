@@ -3,17 +3,20 @@ package com.example.demo.controller;
 import com.example.demo.model.BalanceResponse;
 import com.example.demo.model.BankTransaction;
 import com.example.demo.model.ShowTransactionsResponse;
-import com.example.demo.model.SortOrder;
-import com.example.demo.model.TransactionField;
 import com.example.demo.model.TransactionRequest;
 import com.example.demo.model.TransactionResponse;
 import com.example.demo.service.TransactionService;
 import com.example.demo.util.BankUtils;
 import com.example.demo.util.SortUtils;
+import com.github.rutledgepaulv.qbuilders.builders.GeneralQueryBuilder;
+import com.github.rutledgepaulv.qbuilders.conditions.Condition;
+import com.github.rutledgepaulv.qbuilders.visitors.PredicateVisitor;
+import com.github.rutledgepaulv.rqe.pipes.QueryConversionPipeline;
 import jakarta.validation.Valid;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Predicate;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,6 +28,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("api")
 public class BankController {
+
+	private static final QueryConversionPipeline pipeline = QueryConversionPipeline.defaultPipeline();
 
 	private TransactionService transactionService;
 
@@ -63,15 +68,28 @@ public class BankController {
 
 	@GetMapping("show")
 	public ShowTransactionsResponse showTransactions(@RequestParam Integer accountId, @RequestParam(required = false) Instant time,
-			@RequestParam(defaultValue = "id,desc") List<String> sort, @RequestParam(required = false) List<String> filter) {
+			@RequestParam(defaultValue = "id,desc") List<String> sort, @RequestParam(required = false) String search) {
 		if (time == null) {
 			time = BankUtils.getCurrentTime();
 		}
+		Predicate<BankTransaction> predicate = getFilter(search);
 		Comparator<BankTransaction> comparator = SortUtils.getComparator(sort);
-		List<BankTransaction> filteredBankTransactions = transactionService.getFilteredBankTransactions(accountId, time);
+
+		List<BankTransaction> filteredBankTransactions = transactionService.getFilteredBankTransactions(accountId, time)
+				.stream()
+				.filter(predicate)
+				.toList();
 		int amount = filteredBankTransactions.stream().map(BankTransaction::getAmount).mapToInt(Integer::intValue).sum();
 		List<BankTransaction> sortedTransactions = filteredBankTransactions.stream().sorted(comparator).toList();
 		return ShowTransactionsResponse.of(amount, time, sortedTransactions);
+	}
+
+	private Predicate<BankTransaction> getFilter(String search) {
+		if (search == null) {
+			return x -> true;
+		}
+		Condition<GeneralQueryBuilder> condition = pipeline.apply(search, BankTransaction.class);
+		return condition.query(new PredicateVisitor<>());
 	}
 
 }
