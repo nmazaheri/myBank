@@ -60,10 +60,6 @@ at the current time:
 ```
 GET http://localhost:8080/api/show?accountId=1
 ```
-at a specific time:
-```
-GET http://localhost:8080/api/show?accountId=1&time=2023-08-01T14:14:23Z
-```
 with sorting:
 ```
 GET http://localhost:8080/api/show?accountId=1&sort=description,asc&sort=category,desc
